@@ -1,0 +1,41 @@
+{
+    "displayName": "c:geo Map",
+    "uuid": "9ec749ec-29ea-4c42-9b4b-9e1f0f1a1b0c",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+        "emery"
+    ],
+    "watchapp": {
+        "watchface": false
+    },
+    "messageKeys": {
+        "KEY_COMMAND": 10000,
+        "KEY_VALUE": 10001,
+        "KEY_CHUNK_INDEX": 10002,
+        "KEY_CHUNK_TOTAL": 10003,
+        "KEY_CHUNK_DATA": 10004
+    },
+    "resources": {
+        "media": [
+            {
+                "type": "png",
+                "name": "COLOR_FEATURES",
+                "file": "images/pebble_color_features.png"
+            }
+        ]
+    },
+    "name": "cgeo-pebble-map",
+    "shortName": "c:geo Map",
+    "longName": "c:geo Map",
+    "versionLabel": "1.0.0",
+    "companyName": "c:geo",
+    "appKeys": {
+        "KEY_COMMAND": 10000,
+        "KEY_VALUE": 10001,
+        "KEY_CHUNK_INDEX": 10002,
+        "KEY_CHUNK_TOTAL": 10003,
+        "KEY_CHUNK_DATA": 10004
+    },
+    "capabilities": []
+}

@@ -1,0 +1,27 @@
+{
+  "name": "cgeo-pebble-map",
+  "author": "c:geo",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "c:geo Map",
+    "uuid": "9ec749ec-29ea-4c42-9b4b-9e1f0f1a1b0c",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": ["emery"],
+    "watchapp": {
+      "watchface": false
+    },
+    "messageKeys": ["KEY_COMMAND", "KEY_VALUE", "KEY_CHUNK_INDEX", "KEY_CHUNK_TOTAL", "KEY_CHUNK_DATA"],
+    "resources": {
+      "media": [
+        {
+          "type": "png",
+          "name": "COLOR_FEATURES",
+          "file": "images/pebble_color_features.png"
+        }
+      ]
+    }
+  }
+}
