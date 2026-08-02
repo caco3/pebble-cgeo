@@ -1,0 +1,13 @@
+# Pebble build output
+build/
+.lock-waf_linux_build
+.wafpickle-*
+*.pyc
+__pycache__/
+
+# Editor / OS
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/
