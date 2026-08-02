@@ -221,7 +221,7 @@ static void window_load(Window *window) {
         s_back = s_front;
     }
 
-    s_fallback_bitmap = gbitmap_create_with_resource(RESOURCE_ID_COLOR_FEATURES);
+    s_fallback_bitmap = gbitmap_create_with_resource(RESOURCE_ID_CGEO_LOGO);
 
     s_bitmap_layer = bitmap_layer_create(bounds);
     if (s_fallback_bitmap != NULL) {

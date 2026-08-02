@@ -18,8 +18,8 @@
       "media": [
         {
           "type": "png",
-          "name": "COLOR_FEATURES",
-          "file": "images/pebble_color_features.png"
+          "name": "CGEO_LOGO",
+          "file": "images/cgeo-logo.png"
         }
       ]
     }
