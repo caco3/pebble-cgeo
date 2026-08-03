@@ -18,7 +18,7 @@
 #define MAP_BYTES_PER_ROW MAP_WIDTH
 #define MAP_SIZE         (MAP_HEIGHT * MAP_BYTES_PER_ROW)
 #define CHUNK_SIZE       1000
-#define DATA_WATCHDOG_MS 30000
+#define DATA_WATCHDOG_MS 10000
 
 static Window *s_window;
 static BitmapLayer *s_bitmap_layer;
@@ -54,7 +54,7 @@ static void send_command(const uint32_t command, const int32_t value) {
 static int count_bits(uint64_t v);
 
 static void draw_progress(Layer *layer, GContext *ctx) {
-    graphics_context_set_fill_color(ctx, GColorWhite);
+    graphics_context_set_fill_color(ctx, GColorBlack);
     graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
 }
 
