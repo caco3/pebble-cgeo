@@ -31,7 +31,6 @@ static uint8_t *s_back = NULL;
 
 static int s_chunks_total = -1;
 static uint64_t s_received_mask = 0;
-static bool s_map_received = false;
 static bool s_has_image = false;
 static int s_frame_id = -1;
 static AppTimer *s_refresh_timer = NULL;
@@ -146,7 +145,6 @@ static void inbox_received_callback(DictionaryIterator *iter, void *context) {
         if (s_frame_id == -1 || new_frame > s_frame_id) {
             s_frame_id = new_frame;
             s_received_mask = 0;
-            s_map_received = false;
             // clear the receiving buffer, not the displayed front buffer
             if (s_back != NULL && s_back != s_front) {
                 memset(s_back, GColorBlackARGB8, MAP_SIZE);
@@ -181,7 +179,6 @@ static void inbox_received_callback(DictionaryIterator *iter, void *context) {
     update_progress();
 
     if (s_chunks_total > 0 && count_bits(s_received_mask) >= s_chunks_total) {
-        s_map_received = true;
         s_has_image = true;
         // swap the completed back bitmap to the front for display
         if (s_back_bmp != s_front_bmp) {
@@ -199,7 +196,6 @@ static void inbox_dropped_callback(AppMessageResult reason, void *context) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "chunk dropped (reason %d)", (int) reason);
     s_chunks_total = -1;
     s_received_mask = 0;
-    s_map_received = false;
     update_progress();
     send_command(CMD_REFRESH, 0);
 }
