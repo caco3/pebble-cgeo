@@ -290,6 +290,7 @@ static void window_load(Window *window) {
     text_layer_set_text_alignment(s_status_layer, GTextAlignmentCenter);
     layer_add_child(window_layer, text_layer_get_layer(s_status_layer));
 
+    update_progress();
     update_map_display();
 }
 
