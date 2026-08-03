@@ -39,6 +39,7 @@ static int s_refresh_interval_ms = 10000;
 static bool s_auto_refresh = true;
 static Layer *s_progress_layer = NULL;
 static TextLayer *s_status_layer = NULL;
+static char s_status_buffer[48];
 
 static void send_command(const uint32_t command, const int32_t value) {
     DictionaryIterator *iter;
@@ -63,8 +64,23 @@ static void update_progress() {
         return;
     }
     int width = 0;
+    const int received = count_bits(s_received_mask);
     if (s_chunks_total > 0) {
-        width = (MAP_WIDTH * count_bits(s_received_mask)) / s_chunks_total;
+        width = (MAP_WIDTH * received) / s_chunks_total;
+        if (s_status_layer != NULL) {
+            const int pct = (received * 100) / s_chunks_total;
+            if (received < s_chunks_total) {
+                snprintf(s_status_buffer, sizeof(s_status_buffer), "Receiving data from c:geo... (%d%%)", pct);
+            } else {
+                snprintf(s_status_buffer, sizeof(s_status_buffer), "Waiting for data from c:geo...");
+            }
+            text_layer_set_text(s_status_layer, s_status_buffer);
+        }
+    } else {
+        if (s_status_layer != NULL) {
+            snprintf(s_status_buffer, sizeof(s_status_buffer), "Waiting for data from c:geo...");
+            text_layer_set_text(s_status_layer, s_status_buffer);
+        }
     }
     layer_set_frame(s_progress_layer, GRect(0, 0, width, 4));
     layer_mark_dirty(s_progress_layer);
@@ -267,7 +283,6 @@ static void window_load(Window *window) {
     text_layer_set_text_color(s_status_layer, GColorWhite);
     text_layer_set_background_color(s_status_layer, GColorBlack);
     text_layer_set_text_alignment(s_status_layer, GTextAlignmentCenter);
-    text_layer_set_text(s_status_layer, "Waiting for data from c:geo...");
     layer_add_child(window_layer, text_layer_get_layer(s_status_layer));
 
     update_map_display();
