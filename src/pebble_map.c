@@ -22,6 +22,7 @@
 
 static Window *s_window;
 static BitmapLayer *s_bitmap_layer;
+static BitmapLayer *s_icon_layer = NULL;
 static GBitmap *s_front_bmp = NULL;
 static GBitmap *s_back_bmp = NULL;
 static GBitmap *s_fallback_bitmap = NULL;
@@ -90,12 +91,11 @@ static void update_map_display() {
     if (s_bitmap_layer == NULL) {
         return;
     }
-    if (s_has_image && s_front_bmp != NULL) {
-        bitmap_layer_set_bitmap(s_bitmap_layer, s_front_bmp);
-    } else if (s_fallback_bitmap != NULL) {
-        bitmap_layer_set_bitmap(s_bitmap_layer, s_fallback_bitmap);
-    }
+    bitmap_layer_set_bitmap(s_bitmap_layer, s_front_bmp);
     layer_mark_dirty(bitmap_layer_get_layer(s_bitmap_layer));
+    if (s_icon_layer != NULL) {
+        layer_set_hidden(bitmap_layer_get_layer(s_icon_layer), s_has_image);
+    }
     if (s_status_layer != NULL) {
         layer_set_hidden(text_layer_get_layer(s_status_layer), s_has_image);
     }
@@ -267,17 +267,22 @@ static void window_load(Window *window) {
     s_data_watchdog = app_timer_register(DATA_WATCHDOG_MS, data_watchdog_handler, NULL);
 
     s_bitmap_layer = bitmap_layer_create(bounds);
-    if (s_fallback_bitmap != NULL) {
-        bitmap_layer_set_bitmap(s_bitmap_layer, s_fallback_bitmap);
-    }
+    bitmap_layer_set_bitmap(s_bitmap_layer, s_front_bmp);
     bitmap_layer_set_alignment(s_bitmap_layer, GAlignCenter);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_bitmap_layer));
+
+    s_icon_layer = bitmap_layer_create(GRect(40, 25, 120, 120));
+    if (s_fallback_bitmap != NULL) {
+        bitmap_layer_set_bitmap(s_icon_layer, s_fallback_bitmap);
+    }
+    bitmap_layer_set_alignment(s_icon_layer, GAlignTop);
+    layer_add_child(window_layer, bitmap_layer_get_layer(s_icon_layer));
 
     s_progress_layer = layer_create(GRect(0, 0, 0, 4));
     layer_set_update_proc(s_progress_layer, draw_progress);
     layer_add_child(window_layer, s_progress_layer);
 
-    s_status_layer = text_layer_create(GRect(0, 140, MAP_WIDTH, 80));
+    s_status_layer = text_layer_create(GRect(0, 150, MAP_WIDTH, 80));
     text_layer_set_font(s_status_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
     text_layer_set_overflow_mode(s_status_layer, GTextOverflowModeWordWrap);
     text_layer_set_text_color(s_status_layer, GColorWhite);
@@ -304,6 +309,10 @@ static void window_unload(Window *window) {
     if (s_bitmap_layer != NULL) {
         bitmap_layer_destroy(s_bitmap_layer);
         s_bitmap_layer = NULL;
+    }
+    if (s_icon_layer != NULL) {
+        bitmap_layer_destroy(s_icon_layer);
+        s_icon_layer = NULL;
     }
     if (s_progress_layer != NULL) {
         layer_destroy(s_progress_layer);
