@@ -37,9 +37,7 @@ static AppTimer *s_refresh_timer = NULL;
 static AppTimer *s_data_watchdog = NULL;
 static int s_refresh_interval_ms = 10000;
 static bool s_auto_refresh = true;
-static TextLayer *s_diag_layer = NULL;
-static char s_diag_buffer[32];
-static int s_drops = 0;
+static Layer *s_progress_layer = NULL;
 
 static void send_command(const uint32_t command, const int32_t value) {
     DictionaryIterator *iter;
@@ -54,11 +52,21 @@ static void send_command(const uint32_t command, const int32_t value) {
 
 static int count_bits(uint64_t v);
 
-static void update_diag() {
-    if (s_diag_layer != NULL) {
-        snprintf(s_diag_buffer, sizeof(s_diag_buffer), "%d/%d D:%d", count_bits(s_received_mask), s_chunks_total, s_drops);
-        text_layer_set_text(s_diag_layer, s_diag_buffer);
+static void draw_progress(Layer *layer, GContext *ctx) {
+    graphics_context_set_fill_color(ctx, GColorWhite);
+    graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
+}
+
+static void update_progress() {
+    if (s_progress_layer == NULL) {
+        return;
     }
+    int width = 0;
+    if (s_chunks_total > 0) {
+        width = (MAP_WIDTH * count_bits(s_received_mask)) / s_chunks_total;
+    }
+    layer_set_frame(s_progress_layer, GRect(0, 0, width, 4));
+    layer_mark_dirty(s_progress_layer);
 }
 
 static void update_map_display() {
@@ -123,7 +131,7 @@ static void inbox_received_callback(DictionaryIterator *iter, void *context) {
             if (s_back != NULL && s_back != s_front) {
                 memset(s_back, GColorBlackARGB8, MAP_SIZE);
             }
-            update_diag();
+            update_progress();
         } else if (new_frame < s_frame_id) {
             // stale chunk from a previous frame, ignore it
             return;
@@ -150,7 +158,7 @@ static void inbox_received_callback(DictionaryIterator *iter, void *context) {
     s_data_watchdog = app_timer_register(DATA_WATCHDOG_MS, data_watchdog_handler, NULL);
 
     s_received_mask |= (1ULL << index);
-    update_diag();
+    update_progress();
 
     if (s_chunks_total > 0 && count_bits(s_received_mask) >= s_chunks_total) {
         s_map_received = true;
@@ -168,12 +176,11 @@ static void inbox_received_callback(DictionaryIterator *iter, void *context) {
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
-    s_drops++;
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "chunk dropped: %d (reason %d)", s_drops, (int) reason);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "chunk dropped (reason %d)", (int) reason);
     s_chunks_total = -1;
     s_received_mask = 0;
     s_map_received = false;
-    update_diag();
+    update_progress();
     send_command(CMD_REFRESH, 0);
 }
 
@@ -246,13 +253,9 @@ static void window_load(Window *window) {
     bitmap_layer_set_alignment(s_bitmap_layer, GAlignCenter);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_bitmap_layer));
 
-    s_diag_layer = text_layer_create(GRect(2, 2, 196, 18));
-    text_layer_set_font(s_diag_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
-    text_layer_set_text_color(s_diag_layer, GColorWhite);
-    text_layer_set_background_color(s_diag_layer, GColorBlack);
-    text_layer_set_text_alignment(s_diag_layer, GTextAlignmentLeft);
-    text_layer_set_text(s_diag_layer, "-/-");
-    layer_add_child(window_layer, text_layer_get_layer(s_diag_layer));
+    s_progress_layer = layer_create(GRect(0, 0, 0, 4));
+    layer_set_update_proc(s_progress_layer, draw_progress);
+    layer_add_child(window_layer, s_progress_layer);
 }
 
 static void window_unload(Window *window) {
@@ -272,9 +275,9 @@ static void window_unload(Window *window) {
         bitmap_layer_destroy(s_bitmap_layer);
         s_bitmap_layer = NULL;
     }
-    if (s_diag_layer != NULL) {
-        text_layer_destroy(s_diag_layer);
-        s_diag_layer = NULL;
+    if (s_progress_layer != NULL) {
+        layer_destroy(s_progress_layer);
+        s_progress_layer = NULL;
     }
 }
 
