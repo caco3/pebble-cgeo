@@ -18,6 +18,7 @@
 #define MAP_BYTES_PER_ROW MAP_WIDTH
 #define MAP_SIZE         (MAP_HEIGHT * MAP_BYTES_PER_ROW)
 #define CHUNK_SIZE       1000
+#define DATA_WATCHDOG_MS 30000
 
 static Window *s_window;
 static BitmapLayer *s_bitmap_layer;
@@ -33,6 +34,7 @@ static bool s_map_received = false;
 static bool s_has_image = false;
 static int s_frame_id = -1;
 static AppTimer *s_refresh_timer = NULL;
+static AppTimer *s_data_watchdog = NULL;
 static int s_refresh_interval_ms = 10000;
 static bool s_auto_refresh = true;
 static TextLayer *s_diag_layer = NULL;
@@ -76,6 +78,12 @@ static void handle_refresh_timer(void *data) {
     if (s_auto_refresh) {
         s_refresh_timer = app_timer_register(s_refresh_interval_ms, handle_refresh_timer, NULL);
     }
+}
+
+static void data_watchdog_handler(void *data) {
+    s_data_watchdog = NULL;
+    s_has_image = false;
+    update_map_display();
 }
 
 static void start_refresh_timer() {
@@ -135,6 +143,11 @@ static void inbox_received_callback(DictionaryIterator *iter, void *context) {
             s_back[offset + i] = data[i];
         }
     }
+
+    if (s_data_watchdog != NULL) {
+        app_timer_cancel(s_data_watchdog);
+    }
+    s_data_watchdog = app_timer_register(DATA_WATCHDOG_MS, data_watchdog_handler, NULL);
 
     s_received_mask |= (1ULL << index);
     update_diag();
@@ -224,6 +237,8 @@ static void window_load(Window *window) {
 
     s_fallback_bitmap = gbitmap_create_with_resource(RESOURCE_ID_CGEO_LOGO);
 
+    s_data_watchdog = app_timer_register(DATA_WATCHDOG_MS, data_watchdog_handler, NULL);
+
     s_bitmap_layer = bitmap_layer_create(bounds);
     if (s_fallback_bitmap != NULL) {
         bitmap_layer_set_bitmap(s_bitmap_layer, s_fallback_bitmap);
@@ -286,6 +301,10 @@ static void deinit(void) {
     if (s_refresh_timer != NULL) {
         app_timer_cancel(s_refresh_timer);
         s_refresh_timer = NULL;
+    }
+    if (s_data_watchdog != NULL) {
+        app_timer_cancel(s_data_watchdog);
+        s_data_watchdog = NULL;
     }
     app_message_deregister_callbacks();
     window_destroy(s_window);
