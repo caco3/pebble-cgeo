@@ -142,7 +142,7 @@ static void inbox_received_callback(DictionaryIterator *iter, void *context) {
     }
     if (frame_tuple != NULL) {
         int new_frame = (int) frame_tuple->value->int32;
-        if (s_frame_id == -1 || new_frame > s_frame_id) {
+        if (s_frame_id == -1 || new_frame != s_frame_id) {
             s_frame_id = new_frame;
             s_received_mask = 0;
             // clear the receiving buffer, not the displayed front buffer
@@ -150,9 +150,6 @@ static void inbox_received_callback(DictionaryIterator *iter, void *context) {
                 memset(s_back, GColorBlackARGB8, MAP_SIZE);
             }
             update_progress();
-        } else if (new_frame < s_frame_id) {
-            // stale chunk from a previous frame, ignore it
-            return;
         }
     }
     if (s_frame_id == -1 || index_tuple == NULL || data_tuple == NULL) {
