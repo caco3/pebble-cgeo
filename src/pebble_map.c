@@ -38,6 +38,7 @@ static AppTimer *s_data_watchdog = NULL;
 static int s_refresh_interval_ms = 10000;
 static bool s_auto_refresh = true;
 static Layer *s_progress_layer = NULL;
+static TextLayer *s_status_layer = NULL;
 
 static void send_command(const uint32_t command, const int32_t value) {
     DictionaryIterator *iter;
@@ -79,6 +80,9 @@ static void update_map_display() {
         bitmap_layer_set_bitmap(s_bitmap_layer, s_fallback_bitmap);
     }
     layer_mark_dirty(bitmap_layer_get_layer(s_bitmap_layer));
+    if (s_status_layer != NULL) {
+        layer_set_hidden(text_layer_get_layer(s_status_layer), s_has_image);
+    }
 }
 
 static void handle_refresh_timer(void *data) {
@@ -256,6 +260,16 @@ static void window_load(Window *window) {
     s_progress_layer = layer_create(GRect(0, 0, 0, 4));
     layer_set_update_proc(s_progress_layer, draw_progress);
     layer_add_child(window_layer, s_progress_layer);
+
+    s_status_layer = text_layer_create(GRect(0, 166, MAP_WIDTH, 30));
+    text_layer_set_font(s_status_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+    text_layer_set_text_color(s_status_layer, GColorWhite);
+    text_layer_set_background_color(s_status_layer, GColorBlack);
+    text_layer_set_text_alignment(s_status_layer, GTextAlignmentCenter);
+    text_layer_set_text(s_status_layer, "Waiting for data from c:geo...");
+    layer_add_child(window_layer, text_layer_get_layer(s_status_layer));
+
+    update_map_display();
 }
 
 static void window_unload(Window *window) {
@@ -278,6 +292,10 @@ static void window_unload(Window *window) {
     if (s_progress_layer != NULL) {
         layer_destroy(s_progress_layer);
         s_progress_layer = NULL;
+    }
+    if (s_status_layer != NULL) {
+        text_layer_destroy(s_status_layer);
+        s_status_layer = NULL;
     }
 }
 
