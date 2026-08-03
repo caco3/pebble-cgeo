@@ -254,15 +254,15 @@ static void window_load(Window *window) {
     if (s_fallback_bitmap != NULL) {
         bitmap_layer_set_bitmap(s_bitmap_layer, s_fallback_bitmap);
     }
-    bitmap_layer_set_alignment(s_bitmap_layer, GAlignTop);
+    bitmap_layer_set_alignment(s_bitmap_layer, GAlignCenter);
     layer_add_child(window_layer, bitmap_layer_get_layer(s_bitmap_layer));
 
     s_progress_layer = layer_create(GRect(0, 0, 0, 4));
     layer_set_update_proc(s_progress_layer, draw_progress);
     layer_add_child(window_layer, s_progress_layer);
 
-    s_status_layer = text_layer_create(GRect(0, 140, MAP_WIDTH, 60));
-    text_layer_set_font(s_status_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+    s_status_layer = text_layer_create(GRect(0, 140, MAP_WIDTH, 80));
+    text_layer_set_font(s_status_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
     text_layer_set_overflow_mode(s_status_layer, GTextOverflowModeWordWrap);
     text_layer_set_text_color(s_status_layer, GColorWhite);
     text_layer_set_background_color(s_status_layer, GColorBlack);
